@@ -5,6 +5,7 @@ from seiten.Profil import show_profil
 from seiten.Ernaehrung import show_ernaehrung
 from seiten.Fortschritt import show_fortschritt
 from seiten.Coach import show_coach
+import os
 
 st.set_page_config(page_title="FitAI", page_icon="💪", layout="centered")
 
@@ -19,10 +20,17 @@ if "menu" not in st.session_state:
     st.session_state.menu = "Dashboard"
 
 # Kopfbereich
-col1, col2 = st.columns([3, 1.5])
-
+col1, col2 = st.columns([3, 1.5])                                       
+                                                                        
 with col1:
-    st.image("LOGO.png", width=150)
+    # 1. Den genauen Ordner der Datei herausfinden
+    aktueller_ordner = os.path.dirname(os.path.abspath(__file__))
+    
+    # 2. Pfad und Bildnamen sicher zusammenkleben
+    bild_pfad = os.path.join(aktueller_ordner, "LOGO.png")
+    
+    # 3. Das Bild mit dem neuen Pfad laden
+    st.image(bild_pfad, width=150)
     
 
 with col2:
