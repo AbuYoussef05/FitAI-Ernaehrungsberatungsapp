@@ -1,8 +1,9 @@
 import sqlite3
+import os
 from werkzeug.security import generate_password_hash
 
-
-DB_PATH = "fitai.db" 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "fitai_cloud.db")
 
 def init_db():
     """Erstellt alle Tabellen passend zu unserem aktuellen db_manager.py."""
