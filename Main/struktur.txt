@@ -1,0 +1,20 @@
+fitai_project/
+│
+├── app.py                  # Die Hauptdatei 
+├── requirements.txt        # Hier stehen alle benötigten Pakete drin
+├── .gitignore              # Ignoriert Api Key
+│
+├── pages/                  # Hier liegen die einzelnen UI-Seiten (Frontend)
+│   ├── 1_Dashboard.py
+│   ├── 2_Profil.py
+│   ├── 3_Ernaehrung.py
+│   └── 4_Coach.py
+│
+├── database/               # Alles rund um SQLite (Backend)
+│   └── db_manager.py       # Funktionen 
+│
+├── ai/                     # KI-Logik (Google Gemini)
+│   └── gemini_service.py   # Prompts & API-Calls 
+│
+└── logic/                  # Mathematik & Berechnungen
+    └── calculations.py     # Harris-Benedict-Formel, XP-Vergabe,
