@@ -1,11 +1,14 @@
 import streamlit as st
 from database import db_manager
+from database.db_setup import init_db
 from seiten.Dashboard import show_dashboard
 from seiten.Profil import show_profil
 from seiten.Ernaehrung import show_ernaehrung
 from seiten.Fortschritt import show_fortschritt
 from seiten.Coach import show_coach
 import os
+
+init_db
 
 st.set_page_config(page_title="FitAI", page_icon="💪", layout="centered")
 
