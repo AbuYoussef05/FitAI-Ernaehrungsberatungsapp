@@ -1,8 +1,12 @@
 import sqlite3
 import json
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
-DB_PATH = "fitai.db"
+# Den genauen Pfad zum database-Ordner finden
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Neue, frische Datenbank erstellen lassen
+DB_PATH = os.path.join(BASE_DIR, "fitai_cloud.db")
 
 # 1. AUTHENTIFIZIERUNG (Login / Register)
 def get_connection():
