@@ -8,7 +8,15 @@ from seiten.Fortschritt import show_fortschritt
 from seiten.Coach import show_coach
 import os
 
-init_db
+# Der @st.cache_resource Befehl ist pure Magie. 
+# Er merkt sich, dass er das hier schon gemacht hat, und führt es bei Klicks nicht nochmal aus.
+@st.cache_resource
+def starte_datenbank_einmalig():
+    init_db()
+    return "Datenbank ist bereit!"
+
+# Hier drücken wir virtuell auf "Enter" im Terminal
+starte_datenbank_einmalig()
 
 st.set_page_config(page_title="FitAI", page_icon="💪", layout="centered")
 
