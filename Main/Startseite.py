@@ -6,17 +6,28 @@ from seiten.Profil import show_profil
 from seiten.Ernaehrung import show_ernaehrung
 from seiten.Fortschritt import show_fortschritt
 from seiten.Coach import show_coach
+import sys
 import os
 
-# Der @st.cache_resource Befehl ist pure Magie. 
-# Er merkt sich, dass er das hier schon gemacht hat, und führt es bei Klicks nicht nochmal aus.
+# 1. Das Hauptquartier (Main-Ordner) fest im System verankern!
+aktueller_ordner = os.path.dirname(os.path.abspath(__file__))
+if aktueller_ordner not in sys.path:
+    sys.path.append(aktueller_ordner)
+
+# 2. Jetzt erst Streamlit und den Rest laden
+import streamlit as st
+from database.db_setup import init_db
+
 @st.cache_resource
 def starte_datenbank_einmalig():
     init_db()
-    return "Datenbank ist bereit!"
+    return "Datenbank bereit"
 
-# Hier drücken wir virtuell auf "Enter" im Terminal
 starte_datenbank_einmalig()
+
+from database import db_manager
+from seiten.Dashboard import show_dashboard
+# ... (dein restlicher Code)
 
 st.set_page_config(page_title="FitAI", page_icon="💪", layout="centered")
 
