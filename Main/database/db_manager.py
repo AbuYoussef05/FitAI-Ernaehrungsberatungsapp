@@ -258,3 +258,61 @@ def delete_food_log(log_id):
     cursor.execute("DELETE FROM food_log WHERE id = ?", (log_id,))
     conn.commit()
     conn.close()
+
+# ==========================================
+# 4. EXERCISE TRACKER (Neu!)
+# ==========================================
+
+def init_exercise_table():
+    """Erstellt die Sport-Tabelle, falls sie noch fehlt."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS exercise_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            date TEXT,
+            activity_text TEXT,
+            calories INTEGER
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def log_exercise(user_id, date, activity_text, calories):
+    """Speichert eine sportliche Aktivität."""
+    init_exercise_table()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO exercise_log (user_id, date, activity_text, calories) VALUES (?, ?, ?, ?)", 
+                   (user_id, date, activity_text, calories))
+    conn.commit()
+    conn.close()
+
+def get_burned_calories(user_id, date):
+    """Zählt alle verbrannten Kalorien für heute zusammen."""
+    init_exercise_table()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUM(calories) FROM exercise_log WHERE user_id = ? AND date = ?", (user_id, date))
+    total = cursor.fetchone()[0]
+    conn.close()
+    return total if total else 0
+
+def get_todays_exercises(user_id, date):
+    """Holt die Liste der heutigen Aktivitäten."""
+    init_exercise_table()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, activity_text, calories FROM exercise_log WHERE user_id = ? AND date = ?", (user_id, date))
+    data = cursor.fetchall()
+    conn.close()
+    return [{"id": r[0], "activity_text": r[1], "calories": r[2]} for r in data]
+
+def delete_exercise_log(log_id):
+    """Löscht eine Aktivität."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM exercise_log WHERE id = ?", (log_id,))
+    conn.commit()
+    conn.close()

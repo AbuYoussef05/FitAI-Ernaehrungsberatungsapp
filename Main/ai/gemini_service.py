@@ -150,3 +150,28 @@ def analyze_food_input(food_input):
     except Exception as e:
         print(f"KI Fehler beim Food-Tracking: {e}")
         return None
+    
+def analyze_exercise_input(exercise_input):
+    """KI schätzt verbrannte Kalorien basierend auf der Aktivität."""
+    if not client:
+        return None
+
+    prompt = f"""
+    Der Nutzer hat folgenden Sport gemacht: '{exercise_input}'.
+    Schätze realistisch die verbrannten Kalorien.
+    Antworte AUSSCHLIESSLICH im JSON-Format:
+    {{
+      "aktivitaet": "Zusammenfassung der Aktivität",
+      "kalorien": 250
+    }}
+    """
+    try:
+        response = client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
+        )
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"KI Fehler beim Sport-Tracking: {e}")
+        return None

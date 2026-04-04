@@ -1,8 +1,8 @@
 import streamlit as st
 from datetime import date
-from database.db_manager import get_user_profile, get_xp, add_xp, log_food, get_consumed_calories, get_todays_food, delete_food_log
+from database.db_manager import get_user_profile, get_xp, add_xp, log_food, get_consumed_calories, get_todays_food, delete_food_log, log_exercise, get_todays_exercises, delete_exercise_log , get_burned_calories
 from logic.calculations import calculate_calories_and_macros
-from ai.gemini_service import analyze_food_input
+from ai.gemini_service import analyze_food_input, analyze_exercise_input
 
 def show_dashboard():
     
@@ -45,78 +45,90 @@ def show_dashboard():
             st.caption(f"<div style='text-align: center;'>{xp_im_aktuellen_level} / 100 XP bis Level {aktuelles_level + 1}</div>", unsafe_allow_html=True)
     st.write("---")
 
+# ==========================================
+    # 2. TRACKING (Essen & Sport)
     # ==========================================
-    # 2. TRACKING (KI & Manuell + Tagebuch)
-    # ==========================================
-    st.subheader("🏃‍♂️ Heutiges Tracking")
     heute = str(date.today())
+    
+    col_food, col_sport = st.columns(2)
 
-    tab_ki, tab_manuell = st.tabs(["🤖 Mit KI schätzen", "✍️ Manuell eintragen"])
-
-    # TAB 1: KI-EINGABE
-    with tab_ki:
-        food_eingabe = st.text_input("Was gab es heute?", placeholder="z.B. Ein Croissant und ein Kaffee", key="ki_input")
-        if st.button("Mit KI tracken 🚀", use_container_width=True):
-            if food_eingabe:
-                with st.spinner("KI berechnet Kalorien..."):
-                    ergebnis = analyze_food_input(food_eingabe)
-                    if ergebnis and "kalorien" in ergebnis:
-                        log_food(user_id, heute, ergebnis["gericht"], ergebnis["kalorien"])
-                        st.success(f"✅ Erfasst: {ergebnis['gericht']} ({ergebnis['kalorien']} kcal)")
-                        st.rerun()
-                    else:
-                        st.error("Das konnte die KI leider nicht verarbeiten.")
-            else:
-                st.warning("Bitte gib ein Essen ein!")
-
-    # TAB 2: MANUELLE EINGABE
-    with tab_manuell:
-        col_m1, col_m2 = st.columns([3, 1])
-        with col_m1:
-            manuell_name = st.text_input("Name der Mahlzeit", placeholder="z.B. Proteinriegel Schoko")
-        with col_m2:
-            manuell_kcal = st.number_input("Kalorien (kcal)", min_value=1, max_value=5000, value=250)
-        
-        if st.button("Manuell speichern 💾", use_container_width=True):
-            if manuell_name:
-                log_food(user_id, heute, manuell_name, manuell_kcal)
-                st.success(f"✅ Erfasst: {manuell_name} ({manuell_kcal} kcal)")
+    with col_food:
+        st.subheader("🍽️ Food-Tracking")
+        tab_food_ki, tab_food_man = st.tabs(["🤖 KI", "✍️ Manuell"])
+        with tab_food_ki:
+            f_ki = st.text_input("Was gab es?", key="food_ki")
+            if st.button("Essen schätzen 🚀"):
+                res = analyze_food_input(f_ki)
+                if res:
+                    log_food(user_id, heute, res["gericht"], res["kalorien"])
+                    st.rerun()
+        with tab_food_man:
+            f_n = st.text_input("Gericht", key="food_m")
+            f_k = st.number_input("kcal", min_value=0, value=300, key="food_mk")
+            if st.button("Essen loggen 💾"):
+                log_food(user_id, heute, f_n, f_k)
                 st.rerun()
-            else:
-                st.warning("Bitte gib der Mahlzeit einen Namen!")
+
+    with col_sport:
+        st.subheader("🏃‍♂️ Sport-Tracking")
+        tab_sport_ki, tab_sport_man = st.tabs(["🤖 KI", "✍️ Manuell"])
+        with tab_sport_ki:
+            s_ki = st.text_input("Was hast du gemacht?", placeholder="z.B. 30 Min Joggen", key="sport_ki")
+            if st.button("Sport schätzen 🔥"):
+                res = analyze_exercise_input(s_ki)
+                if res:
+                    log_exercise(user_id, heute, res["aktivitaet"], res["kalorien"])
+                    st.rerun()
+        with tab_sport_man:
+            s_n = st.text_input("Aktivität", key="sport_m")
+            s_k = st.number_input("kcal verbrannt", min_value=0, value=200, key="sport_mk")
+            if st.button("Sport loggen 💾"):
+                log_exercise(user_id, heute, s_n, s_k)
+                st.rerun()
 
     st.write("---")
 
-    # ÜBERSICHT: HEUTE GEGESSEN
-    st.markdown("### 🍽️ Dein Food-Tagebuch (Heute)")
-    heutige_mahlzeiten = get_todays_food(user_id, heute)
+    # Tagebücher anzeigen
+    col_log1, col_log2 = st.columns(2)
+    with col_log1:
+        st.markdown("### 🍎 Essen heute")
+        for m in get_todays_food(user_id, heute):
+            c1, c2 = st.columns([0.8, 0.2])
+            c1.caption(f"{m['food_text']} ({m['calories']} kcal)")
+            if c2.button("🗑️", key=f"df_{m['id']}"):
+                delete_food_log(m['id'])
+                st.rerun()
     
-    if heutige_mahlzeiten:
-        for meal in heutige_mahlzeiten:
-            col_text, col_btn = st.columns([0.85, 0.15])
-            with col_text:
-                st.markdown(f"**{meal['food_text']}** — *{meal['calories']} kcal*")
-            with col_btn:
-                if st.button("❌", key=f"del_{meal['id']}", help="Eintrag löschen"):
-                    delete_food_log(meal['id'])
-                    st.rerun()
-    else:
-        st.info("Du hast heute noch nichts getrackt.")
+    with col_log2:
+        st.markdown("### ⚡ Sport heute")
+        for e in get_todays_exercises(user_id, heute):
+            c1, c2 = st.columns([0.8, 0.2])
+            c1.caption(f"{e['activity_text']} (-{e['calories']} kcal)")
+            if c2.button("🗑️", key=f"de_{e['id']}"):
+                delete_exercise_log(e['id'])
+                st.rerun()
 
-    st.write("<br>", unsafe_allow_html=True)
+    st.write("---")
 
     # ==========================================
-    # 3. STATISTIKEN & XP-BELOHNUNG (Wieder da!)
+    # 3. BERECHNUNG & METRIKEN
     # ==========================================
     gegessen = get_consumed_calories(user_id, heute)
-    verbrannt = st.slider("🔥 Verbrannte Kalorien durch Sport", min_value=0, max_value=2000, value=0, step=50)
+    verbrannt = get_burned_calories(user_id, heute) # Jetzt aus der DB!
 
     uebrig = ziel_kalorien - gegessen + verbrannt
 
     bal_col1, bal_col2, bal_col3, bal_col4 = st.columns(4)
-    bal_col1.metric("🎯 Tagesziel", f"{ziel_kalorien} kcal")
+    bal_col1.metric("🎯 Ziel", f"{ziel_kalorien} kcal")
     bal_col2.metric("🍽️ Gegessen", f"{gegessen} kcal")
     bal_col3.metric("🏃‍♂️ Verbrannt", f"{verbrannt} kcal")
+
+    if uebrig < 0:
+        bal_col4.metric("🚨 Übrig", f"{uebrig} kcal", delta="Limit!", delta_color="inverse")
+    else:
+        bal_col4.metric("✅ Übrig", f"{uebrig} kcal")
+    
+    # ... hier kommt dein restlicher Gamification-Code (XP abholen etc.)
 
     # 🎁 XP-Logik für eingehaltene Kalorien
     if uebrig < 0:
