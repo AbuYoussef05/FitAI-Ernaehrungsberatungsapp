@@ -12,7 +12,7 @@ except Exception as e:
     client = None
 
 # Modell definieren 
-MODEL_ID = "gemini-1.5-flash"
+MODEL_ID = "gemini-3-flash-preview"
 
 # 1. UPDATE DER HAUPTFUNKTION (Jetzt mit extra_infos)
 def generate_weekly_meal_plan(profile, target_calories, diet_preference, extra_infos=""):
